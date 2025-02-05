@@ -1,0 +1,7 @@
+.node-visited {
+  background-color: rgba(0, 190, 218, 0.75);
+}
+
+.node-shortest-path {
+  background-color: yellow;
+}
