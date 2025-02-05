@@ -1,14 +1,18 @@
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setGridSize, setStartNode, setEndNode, toggleWall, resetGrid } from "../slices/graph";
 import Node from "./Node";
 import "./Grid.css";
-import { useSelector, useDispatch } from "react-redux";
-import { setStartNode, setEndNode, toggleWall, resetGrid } from "../slices/graph";
 
 const Grid = () => {
   const grid = useSelector((state) => state.grid.grid);
+  const rows = useSelector((state) => state.grid.rows);
+  const cols = useSelector((state) => state.grid.cols);
   const dispatch = useDispatch();
+  
   const [markingMode, setMarkingMode] = useState("start");
-  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [inputRows, setInputRows] = useState(rows);
+  const [inputCols, setInputCols] = useState(cols);
 
   const handleNodeClick = (row, col) => {
     if (markingMode === "start") {
@@ -22,28 +26,40 @@ const Grid = () => {
     }
   };
 
-  const handleMouseDown = (row, col) => {
-    if (markingMode === "wall") {
-      setIsMouseDown(true);
-      dispatch(toggleWall({ row, col }));
-    }
-  };
-
-  const handleMouseEnter = (row, col) => {
-    if (isMouseDown && markingMode === "wall") {
-      dispatch(toggleWall({ row, col }));
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsMouseDown(false);
+  const handleGridSizeChange = () => {
+    dispatch(setGridSize({ rows: inputRows, cols: inputCols }));
+    setMarkingMode("start");
   };
 
   return (
-    <div className="p-4" onMouseUp={handleMouseUp}>
-      <h3 className="text-lg font-bold">
-        Click to set: <b>{markingMode.toUpperCase()}</b>
-      </h3>
+    <div className="p-4">
+      <h3 className="text-lg font-bold">Click to set: <b>{markingMode.toUpperCase()}</b></h3>
+
+      <div className="mb-4">
+        <label className="mr-2">Rows:</label>
+        <input 
+          type="number" 
+          value={inputRows} 
+          onChange={(e) => setInputRows(Number(e.target.value))} 
+          className="border p-1 mr-4 w-16"
+        />
+
+        <label className="mr-2">Cols:</label>
+        <input 
+          type="number" 
+          value={inputCols} 
+          onChange={(e) => setInputCols(Number(e.target.value))} 
+          className="border p-1 mr-4 w-16"
+        />
+
+        <button 
+          className="p-2 bg-green-500 text-white"
+          onClick={handleGridSizeChange}
+        >
+          Set Grid Size
+        </button>
+      </div>
+
       <div className="grid">
         {grid.map((row, rowIdx) => (
           <div key={`row-${rowIdx}`} className="row">
@@ -52,19 +68,15 @@ const Grid = () => {
                 key={`node-${rowIdx}-${colIdx}`}
                 {...node}
                 onClick={() => handleNodeClick(rowIdx, colIdx)}
-                onMouseDown={() => handleMouseDown(rowIdx, colIdx)}
-                onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
               />
             ))}
           </div>
         ))}
       </div>
-      <button
-        className="mt-4 p-2 bg-blue-500 text-white"
-        onClick={() => {
-          dispatch(resetGrid());
-          setMarkingMode("start");
-        }}
+
+      <button 
+        className="mt-4 p-2 bg-blue-500 text-white" 
+        onClick={() => { dispatch(resetGrid()); setMarkingMode("start"); }}
       >
         Reset Grid
       </button>
